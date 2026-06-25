@@ -250,7 +250,7 @@ natural y aclaración de que MCP y Power BI son canales independientes.
 **Verificación (Claude):** `grep` confirma que la única cadena `postgresql://` usa `PASSWORD`;
 aclaración MCP≠Power BI al inicio; nombres de columnas dentro del esquema real.
 
-**Commit:** _(ver abajo)_
+**Commit:** `c1a6b02`
 
 ---
 
