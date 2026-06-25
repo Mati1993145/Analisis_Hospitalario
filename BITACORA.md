@@ -166,6 +166,39 @@ KMeans + PCA).
 
 ---
 
+### Fase 5 — Paso 0: Exportación de predicciones 2026 para Power BI
+
+**Qué hizo Codex (ejecutor):** `python/scripts/02_export_predictions.py` — carga el bundle
+`rf_indice_ocupacional.pkl`, selecciona los 5 establecimientos de mayor suma histórica de
+`numero_egresos`, pronostica el índice ocupacional de los 12 meses de 2026 por serie
+`(establecimiento, área)` y exporta a `data/processed/rem20_predicciones_2026.csv`.
+
+**Qué revisé/corregí Claude (orquestador):**
+- **Validación anti-leakage (el punto crítico):** verifiqué que para predecir el mes *M* solo se
+  usan meses estrictamente anteriores — `lag_1`=M-1, `lag_12`=M-12, `rolling_3`=media de M-1/M-2/M-3.
+  El valor real del propio mes *M* nunca entra como feature; solo se adjunta como `VALOR_REAL` para
+  comparar y como lag de meses posteriores. Correcto.
+- **Features idénticas al entrenamiento:** el script valida el orden exacto de `EXPECTED_FEATURES`
+  contra el bundle y **reusa el `LabelEncoder`** del `.pkl` (no re-entrena); omite con aviso las
+  series cuya área no fue vista por el encoder. Consistente con Fase 4.
+- **Pronóstico recursivo verificado:** `value_for_period` prefiere el real sobre el predicho, de
+  modo que ene–may 2026 (con dato real) son pronóstico *1-step-ahead* genuino y jun–dic 2026 son
+  recursivos puros (la predicción de un mes alimenta el lag del siguiente). Diseño sólido.
+- **Verifiqué las 7 series omitidas por "memoria insuficiente":** consulté la BD y son áreas
+  **genuinamente discontinuadas** (último dato 2017, 2021 o 2024), sin continuidad hacia 2026 → es
+  correcto NO pronosticarlas, no es un bug del lag por calendario.
+
+**Ejecución y verificación (Claude):**
+- Script ejecutado (venv, `PGCLIENTENCODING=UTF8`). Salida: **5 establecimientos, 91 series
+  evaluadas, 84 con pronóstico completo, 1.008 filas** (84 × 12 meses), **420 con `VALOR_REAL`**
+  (84 series × 5 meses reales ene–may 2026).
+- CSV verificado: BOM `utf-8-sig`, separador `;`, 7 columnas en orden exacto, acentos íntegros
+  ("Área Cuidados Intensivos Adultos"), rango predicho 5,9–99,0 (plausible).
+
+**Commit:** _(ver abajo)_
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
@@ -233,6 +266,18 @@ KMeans + PCA).
 - **Cluster 3 — Altísima rotación/corta estadía (2 estab, ~1%):** rotación 30,4, estada 4,5 d,
   ocupación >100% (camas prestadas). Perfil atípico (Llanquihue, CESFAM Río Negro).
 - *k=4 validado por el método del codo* (caída marcada hasta k=4, aplanamiento posterior).
+
+### Pronóstico operativo 2026 para Power BI (Fase 5)
+- **Entregable:** `data/processed/rem20_predicciones_2026.csv` — predicción del índice ocupacional
+  para los **12 meses de 2026** de los **5 hospitales de mayor egreso histórico**: Barros Luco
+  Trudeau, Complejo Sótero del Río, Guillermo Grant Benavente (Concepción), Víctor Ríos Ruiz
+  (Los Ángeles) y Hernán Henríquez Aravena (Temuco). 84 series área-establecimiento, 1.008 filas.
+- **Método:** pronóstico recursivo con el Random Forest de Fase 4 (ene–may = *1-step-ahead* con
+  lag real; jun–dic = recursivo puro). Incluye `VALOR_REAL` para los meses con dato observado
+  (ene–may 2026), habilitando un panel de **real vs predicho** en Power BI.
+- **Cobertura del modelo:** solo se pronostican áreas con continuidad hasta fin de 2025; **7 áreas
+  discontinuadas** (cerradas en 2017/2021/2024) se excluyen explícitamente — el modelo no
+  extrapola servicios sin actividad reciente.
 
 ### Decisiones / bugs técnicos relevantes
 - **Bug de carga corregido:** `to_sql(method="multi", chunksize=5000)` excedía el límite de
