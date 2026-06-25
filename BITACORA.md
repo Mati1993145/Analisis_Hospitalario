@@ -226,7 +226,7 @@ de predicciones, armar el modelo de relaciones y construir las 4 páginas del da
 el DDL real de las vistas y con las columnas del CSV; advertencias de relaciones y de clusters
 correctas. Documento listo para construcción manual del dashboard.
 
-**Commit:** _(ver abajo)_
+**Commit:** `3715f1f`
 
 ---
 
