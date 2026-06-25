@@ -132,20 +132,57 @@ Agg`, helper `guardar_grafico`, letalidad ponderada por egresos).
 
 ---
 
+### Fase 4 — Análisis estadístico y predictivo · ✅ Completada (2026-06-25)
+
+**Objetivo:** corregir los 3 conflictos de PK en BD (trazable), descomposición STL, modelo
+predictivo (Random Forest) de índice ocupacional y clustering de establecimientos.
+
+**Qué hizo Codex (ejecutor):** `python/scripts/03_corrige_conflictos.py` (UPDATE parametrizado
+con transacción) y `python/notebooks/02_analisis_estadistico.ipynb` (STL, RF con lags por serie,
+KMeans + PCA).
+
+**Qué revisé/corregí Claude (orquestador):**
+- **Criterio de plausibilidad (definido por el orquestador, no heurística ciega):** evalué los
+  3 conflictos uno por uno. En Hospital de Teno (2 casos) la fila cargada tenía índice ~0 con el
+  hospital activo → se corrigió a la fila con actividad (índices 71,74 y 72,13). En Hospital de
+  Laja la fila vigente ya era la correcta (la otra eran ceros absolutos) → sin cambio.
+- **Bug corregido (STL):** el coeficiente de variación de la componente estacional dividía por su
+  media (≈0 en STL) → daba infinito y la comparación siempre concluía "estacionalidad". Lo cambié
+  a un denominador común (media de la serie observada) para que ambas componentes sean comparables.
+- **Verifiqué la ausencia de fuga de datos:** lags por serie `(establecimiento, área)` con
+  `shift(1)`, `shift(12)` y `shift(1).rolling(3)`; split temporal train≤2023 / test 2024-2025.
+  Correcto. La importancia de `lag_1` (0,73, no ≈1) confirma que no hay leakage del valor actual.
+- **Mejora (almacenamiento):** el RF sin podar pesaba ~955 MB; añadí `compress=3` a `joblib.dump`
+  → 209 MB sin alterar el modelo ni las métricas.
+- Afiné la celda de interpretación de clusters con los datos reales.
+
+**Ejecución y verificación (Claude):**
+- Corrección de conflictos aplicada (2 UPDATE, 1 sin cambio); COUNT sigue 165.232; 3 registros
+  verificados.
+- Notebook ejecutado (`nbconvert`, `EXITCODE=0`). **5 PNG** nuevos + 2 modelos `.pkl`.
+- Verifiqué visualmente codo (k=4 confirmado), feature importance y clusters PCA.
+
+**Commit:** `(siguiente)`
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
 
-### Calidad de datos (Fases 2–3)
+### Calidad de datos (Fases 2–4)
 - **Conflictos de clave primaria:** 3 grupos (6 filas) en el CSV comparten
   (PERIODO, MES, CODIGO_ESTABLECIMIENTO, COD_AREA_FUNCIONAL) con cifras distintas →
   `data/processed/conflictos_clave_primaria.csv`. Casos: Hospital de Teno (2014-12 área 401;
   2014-06 área 407) y Hospital Comunitario de Laja (2020-06 área 407).
-- **Sesgo del criterio `keep="first"`:** en Hospital de Teno, la fila conservada es la de
-  cifras **anómalamente bajas** (ej. 2014-12 área 401: 7 días-cama ocupados, índice 7,53)
-  mientras la descartada tenía los datos sustantivos (556 días-cama, índice 71,74). El total
-  pasó de 165.235 a **165.232 filas**. *Recomendación:* revisar manualmente cuál registro es
-  válido antes de análisis definitivos; el impacto es marginal (3/165.235).
+- **Sesgo del criterio `keep="first"` y su corrección (Fase 4):** en Hospital de Teno, la fila
+  conservada inicialmente era la de cifras **anómalamente bajas** (2014-12 área 401: índice 7,53)
+  mientras la descartada tenía los datos sustantivos (775 días-cama disp., índice 71,74). En
+  Fase 4 se corrigió en BD conservando la fila plausible, **caso por caso**:
+  - Teno 2014-12 área 401: 7,53 → **71,74** (UPDATE).
+  - Teno 2014-06 área 407: 2,22 → **72,13** (UPDATE).
+  - Laja 2020-06 área 407: se mantuvo 15,0 (la alternativa eran ceros absolutos = registro vacío).
+  El CSV de conflictos preserva los 6 registros crudos para trazabilidad. Total estable: 165.232.
 - **Cobertura:** datos 2014–2026 (2026 parcial: ~417 mil egresos vs ~1 millón/año completo),
   **208 establecimientos** distintos. Valores de `indice_ocupacional > 120` (camas prestadas
   entre servicios) son válidos y marginales: **380 registros (0,23%)**.
@@ -173,9 +210,36 @@ Agg`, helper `guardar_grafico`, letalidad ponderada por egresos).
   (ocupación–camas disponibles); cada indicador aporta información independiente (sin
   multicolinealidad), relevante para el modelado de fases posteriores.
 
+### Series de tiempo y modelo predictivo (Fase 4)
+- **Descomposición STL** (índice ocupacional nacional, period=12, robust): la **tendencia**
+  presenta mayor variabilidad relativa (std/media 0,0357) que la **estacionalidad** (0,0328),
+  porque la disrupción COVID afectó sobre todo la tendencia. Mes peak estacional: **agosto**
+  (invierno austral), coherente con el patrón de demanda respiratoria.
+- **Modelo Random Forest** (predicción de índice ocupacional, 116.443 filas train ≤2023,
+  26.185 test 2024-2025): **R² = 0,636 · MAE = 8,13 · RMSE = 19,95**. La diferencia MAE↔RMSE
+  indica buen ajuste típico pero con errores grandes en casos extremos (áreas con camas
+  prestadas / valores atípicos).
+- **Driver dominante:** la ocupación es **altamente autorregresiva** — `lag_1` (mes anterior)
+  concentra el **0,73** de la importancia, seguido de `rolling_3` (0,12) y `lag_12` (0,06,
+  estacionalidad). Las variables de calendario aportan poco una vez conocidos los lags.
+
+### Segmentación de establecimientos (Fase 4, KMeans k=4)
+- **Cluster 0 — Baja complejidad/baja demanda (120 estab, ~57%):** ocupación 43,7%, estada 9,8 d,
+  letalidad 2,7%, rotación 2,2. Grupo mayoritario (hospitales pequeños/comunitarios).
+- **Cluster 1 — Alta complejidad/agudos (82 estab, ~39%):** ocupación 73,4%, estada 17,8 d,
+  **letalidad 10,8%** (la más alta), rotación 2,7. Mayor presión asistencial del sistema.
+- **Cluster 2 — Larga estadía/psiquiátricos (4 estab, ~2%):** estada **343 días**, ocupación
+  81,8%, letalidad 2,2% (El Peral, Horwitz, Philippe Pinel). Larga estadía = modelo de atención.
+- **Cluster 3 — Altísima rotación/corta estadía (2 estab, ~1%):** rotación 30,4, estada 4,5 d,
+  ocupación >100% (camas prestadas). Perfil atípico (Llanquihue, CESFAM Río Negro).
+- *k=4 validado por el método del codo* (caída marcada hasta k=4, aplanamiento posterior).
+
 ### Decisiones / bugs técnicos relevantes
 - **Bug de carga corregido:** `to_sql(method="multi", chunksize=5000)` excedía el límite de
   65.535 parámetros de psycopg2 (20 cols × 5.000); reducido a 1.000.
+- **Bug STL corregido (Fase 4):** el CV de la componente estacional (media ≈0) era degenerado;
+  se usó un denominador común (media de la serie) para comparar variabilidad de componentes.
+- **Modelo RF comprimido:** `joblib` `compress=3` redujo el `.pkl` de ~955 MB a 209 MB.
 - **Encoding:** todo el pipeline fuerza UTF-8 (CSV, `.sql` con `PGCLIENTENCODING=UTF8`,
   export con `utf-8-sig`); acentos verificados íntegros en BD.
 
