@@ -162,7 +162,7 @@ KMeans + PCA).
 - Notebook ejecutado (`nbconvert`, `EXITCODE=0`). **5 PNG** nuevos + 2 modelos `.pkl`.
 - Verifiqué visualmente codo (k=4 confirmado), feature importance y clusters PCA.
 
-**Commit:** `(siguiente)`
+**Commit:** `fabdde0`
 
 ---
 
