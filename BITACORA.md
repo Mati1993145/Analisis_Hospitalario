@@ -128,7 +128,7 @@ Agg`, helper `guardar_grafico`, letalidad ponderada por egresos).
 - **Verifiqué visualmente** los gráficos clave (no solo su existencia) y extraje cifras
   exactas desde la BD para el informe (ver sección de hallazgos).
 
-**Commit:** `(siguiente)`
+**Commit:** `ebe3ac8`
 
 ---
 
