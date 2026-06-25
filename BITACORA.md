@@ -99,6 +99,6 @@ cada par (165.235 − 3 = **165.232**). Quedan documentados por si se requiere r
 
 **Estado final:** modelo relacional poblado y vistas operativas. Listo para Power BI / análisis.
 
-**Commit:** `(siguiente)`
+**Commit:** `dc86337`
 
 ---
