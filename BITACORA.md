@@ -195,7 +195,7 @@ KMeans + PCA).
 - CSV verificado: BOM `utf-8-sig`, separador `;`, 7 columnas en orden exacto, acentos íntegros
   ("Área Cuidados Intensivos Adultos"), rango predicho 5,9–99,0 (plausible).
 
-**Commit:** _(ver abajo)_
+**Commit:** `46c8469`
 
 ---
 
