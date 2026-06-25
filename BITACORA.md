@@ -57,6 +57,6 @@ Cada fase documenta: **(1)** qué hizo Codex, **(2)** qué corrigió/mejoró Cla
 
 **Estado final:** entorno listo. Pendiente: el usuario completará credenciales reales en `.env`.
 
-**Commit:** _(ver historial git de la fase)_
+**Commit:** `e8a9aee`
 
 ---
