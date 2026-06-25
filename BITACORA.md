@@ -199,6 +199,37 @@ KMeans + PCA).
 
 ---
 
+### Fase 5 — Documentación Power BI
+
+**Qué hizo Codex (ejecutor):** `powerbi/README_powerbi.md` — guía paso a paso para instalar el
+driver Npgsql, conectar Power BI Desktop a `rem20_db`, transformar en Power Query, importar el CSV
+de predicciones, armar el modelo de relaciones y construir las 4 páginas del dashboard.
+
+**Qué revisé/corregí Claude (orquestador):**
+- **Corrección de modelo de datos (lo crítico):** el plan original pedía relaciones imposibles
+  contra el esquema real. Inspeccioné las 4 vistas y entregué a Codex el inventario exacto de
+  columnas + el modelo corregido, evitando documentar relaciones que no existen:
+  - `v_resumen_anual` se agrega por `glosa_sss` y **no tiene** `codigo_establecimiento` → no puede
+    unirse a las predicciones por establecimiento; la unión se hace vía `v_ranking_establecimientos`.
+  - `v_ranking_establecimientos` **no tiene** `glosa_sss` → solo comparte `periodo` con el resumen.
+  - Las vistas están a granos distintos → relaciones directas serían muchos-a-muchos ambiguas.
+    Solución documentada: **esquema estrella** con `Dim_Periodo` y `Dim_Establecimiento` (tablas
+    calculadas DAX) como puentes.
+- **Honestidad sobre clusters:** la asignación establecimiento→cluster vive en el `.pkl`, no en
+  ninguna vista ni en el CSV → no puede ser filtro interactivo. Se documenta como tarjetas de
+  referencia estáticas, con la mejora futura de exportar un CSV establecimiento→cluster.
+- **Retoques propios:** añadí título H1 al documento (empezaba en `## 0`) y precisé en la Página 4
+  que la agregación real-vs-predicho sea **Promedio** (no Suma), porque hay 84 series y sin filtrar
+  se promediarían todas.
+
+**Verificación (Claude):** revisé que todos los nombres de columnas del documento coincidan con
+el DDL real de las vistas y con las columnas del CSV; advertencias de relaciones y de clusters
+correctas. Documento listo para construcción manual del dashboard.
+
+**Commit:** _(ver abajo)_
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
