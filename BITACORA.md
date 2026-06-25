@@ -230,6 +230,30 @@ correctas. Documento listo para construcción manual del dashboard.
 
 ---
 
+### Fase 5 — Documentación MCP Claude Desktop
+
+**Qué hizo Codex (ejecutor):** `powerbi/README_mcp.md` — guía para conectar Claude Desktop a
+`rem20_db` vía servidor MCP de PostgreSQL: requisito Node.js, ubicación del
+`claude_desktop_config.json`, JSON del servidor, reinicio, 6 ejemplos de consultas en lenguaje
+natural y aclaración de que MCP y Power BI son canales independientes.
+
+**Qué revisé/corregí Claude (orquestador):**
+- **Seguridad (lo crítico):** verifiqué que la única cadena de conexión use el placeholder
+  `PASSWORD` y no la contraseña real (`grep` sobre `powerbi/`), y que el documento advierta que el
+  `claude_desktop_config.json` es local y no debe subirse a GitHub.
+- **Ejemplos fieles a los datos:** me aseguré de que los 6 ejemplos usen dimensiones reales
+  (Servicio de Salud vía `glosa_sss`, establecimiento, `area_funcional`, `letalidad`, etc.) y no
+  una columna "Región" inexistente. Aprovechan hallazgos reales (efecto COVID 2019→2021,
+  psiquiátricos en días de estada, caída de ocupación 2020).
+- **Retoque propio:** añadí título H1 al documento (coherencia con `README_powerbi.md`).
+
+**Verificación (Claude):** `grep` confirma que la única cadena `postgresql://` usa `PASSWORD`;
+aclaración MCP≠Power BI al inicio; nombres de columnas dentro del esquema real.
+
+**Commit:** _(ver abajo)_
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
