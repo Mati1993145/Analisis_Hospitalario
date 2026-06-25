@@ -1,7 +1,8 @@
-node_modules/
-.venv/
+.env
 venv/
 __pycache__/
 *.pyc
-.env
-.DS_Store
+*.pkl
+data/raw/*.csv
+data/raw/*.xlsx
+.jupyter/

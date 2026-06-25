@@ -1,0 +1,11 @@
+pandas>=2.0
+sqlalchemy>=2.0
+psycopg2-binary
+openpyxl
+matplotlib
+seaborn
+scikit-learn
+scipy
+statsmodels
+jupyter
+python-dotenv
