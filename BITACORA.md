@@ -452,6 +452,26 @@ Análisis de quiebre de tendencia sobre el segmento de salud mental de `rem20.in
 
 ---
 
+### Fase 9B — Narrativa del sub-estudio salud mental, certificada e integrada · ✅ (2026-06-26)
+
+- **Codex redactó** la sección narrativa (ejecutivo-técnica, español) basada en los hallazgos
+  reales de la Fase 9.
+- **Jack certificó número por número** contra el notebook: pendiente pre-COVID +29,97; nivel
+  mar-2020 −309,97; cambio de pendiente +88,66; brecha 2020-21 −249; post +4,0% (+51/mes);
+  control −5,2%; diferencias en diferencias +9,2 pp; ocupación +0,05 (p=0,62) / −2,6%.
+  **0 cifras inventadas, 0 afirmaciones causales** (se verificó que el veredicto "no fue el
+  COVID" se mantiene; la única aparición de "provocado" está en la frase **negada**).
+- **Retoques de Jack:** mención explícita del control de estacionalidad mensual (omitido por
+  Codex) y renumeración de las figuras por orden de aparición.
+- **Decisión de formato:** documento **independiente**
+  `data/processed/Sub-estudio_Salud_Mental_COVID.pdf` (6 páginas, reportlab, mismo estilo que el
+  informe principal, los 5 gráficos embebidos con pie de figura). Se mantiene separado del
+  informe principal (ya cerrado) por modularidad y para mostrarlo de forma autónoma.
+- Generador: `python/scripts/06_genera_subestudio_pdf.py`.
+- Commit `docs: narrativa del sub-estudio salud mental certificada e integrada al informe`.
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
