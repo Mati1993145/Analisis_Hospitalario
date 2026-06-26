@@ -432,6 +432,26 @@ Repo: **https://github.com/Mati1993145/Analisis_Hospitalario**
 
 ---
 
+### Fase 9 — Sub-estudio: ¿causó el COVID el aumento de la hospitalización psiquiátrica? · ✅ (2026-06-26)
+
+Análisis de quiebre de tendencia sobre el segmento de salud mental de `rem20.indicadores`.
+
+- **Paso 0 (validado con el usuario):** segmento definido por `cod_area_funcional` (robusto al
+  mojibake), no por texto ni por establecimiento. Clínico = `418,419,420,421,422,428,429`;
+  forense = `423-426` (flujo judicial, analizado **aparte** por decisión del usuario); excluido
+  `427` (sociosanitario). SQL en `sql/queries/salud_mental_segmento.sql`. Series 2014-2026,
+  149 meses, 0 huecos.
+- **Método (rigor Jack):** series temporales interrumpidas (ITS) con estacionalidad mensual y
+  errores HAC/Newey-West; contrafactual ajustado **solo con datos pre-COVID** y banda de
+  predicción 95%; grupo de control = resto del sistema no psiquiátrico + diferencias en
+  diferencias. Notebook `python/notebooks/03_covid_psiquiatria_quiebre.ipynb` (ejecutado
+  end-to-end con nbconvert), 5 gráficos en `data/processed/graficos_salud_mental/`.
+- **Flujo:** el núcleo estadístico lo construyó y ejecutó Jack directamente (Codex no ejecuta y
+  el análisis exige verificación), respetando "Jack dispone".
+- Commit `feat: análisis de quiebre de tendencia COVID en hospitalización psiquiátrica`.
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
@@ -550,5 +570,49 @@ Repo: **https://github.com/Mati1993145/Analisis_Hospitalario**
   resto del dashboard sigue funcionando — no hay pantalla en blanco.
 - **Honestidad analítica:** la pestaña de predicciones expone las métricas reales del modelo
   (R²=0,636, MAE=8,13) junto al gráfico real-vs-predicho, sin maquillar el desempeño.
+
+---
+
+## HALLAZGOS - SALUD MENTAL Y COVID
+
+> Registro acumulativo del sub-estudio de hospitalización psiquiátrica (Fase 9).
+
+### Veredicto: Escenario B (con matiz) — la tendencia ya existía antes del COVID
+
+El COVID **no fue la causa** del aumento de la hospitalización psiquiátrica: ésta **ya venía
+subiendo desde 2014**. La pandemia la **deprimió temporalmente** y luego rebotó por encima, con
+una recuperación más fuerte que la del resto del sistema.
+
+### Evidencia cuantitativa (segmento clínico, egresos)
+
+- **Tendencia pre-COVID (2014-feb2020):** +≈30 egresos/mes por año (p<0,0001). El alza es
+  **pre-existente**, no nace con la pandemia.
+- **Cambio de nivel en marzo 2020 (ITS, HAC):** ≈ **−310 egresos/mes** (p<0,0001). El COVID
+  primero **hundió** los egresos (contracción de la actividad hospitalaria).
+- **Contrafactual (proyección de la tendencia previa):** brecha media de **−249 egresos/mes en
+  2020-2021** (caída) que pasa a **+51 egresos/mes en 2022-2026** (+≈4% sobre lo esperado).
+- **Ocupación de camas:** plana antes (p=0,62), cae −11,7 pts en COVID y sigue **−2,6% bajo lo
+  esperado**: la presión de camas **no** muestra alza sostenida. El crecimiento es de **flujo**
+  (egresos/rotación), no de stock de camas → modelo de corta estadía.
+
+### Comparación con el resto del sistema (diferencias en diferencias)
+
+- Psiquiatría clínica post-COVID: **+4,0%** sobre lo esperado.
+- Resto del sistema (control): **−5,2%** bajo lo esperado.
+- **Diff-in-diff ≈ +9,2 puntos %:** la demanda psiquiátrica fue **más resiliente y creciente**
+  que la del sistema general — efecto específico de salud mental, aunque no un quiebre causado
+  por el COVID.
+
+### Lectura de salud pública
+
+- La necesidad de camas psiquiátricas es **estructural**, no un shock pandémico → planificar
+  capacidad sobre una tendencia de crecimiento sostenida (2014-2026), no como pico transitorio.
+- El segmento infanto-adolescente es de mayor crecimiento relativo: monitoreo prioritario.
+
+### Salvedad metodológica
+
+REM20 mide **volumen/flujo**, no diagnóstico clínico por patología. Análisis **agregado**; punto
+de interrupción fijo (mar-2020); contrafactual lineal; 2026 parcial. No se afirma causalidad
+clínica. Gráficos: `data/processed/graficos_salud_mental/`.
 
 ---
