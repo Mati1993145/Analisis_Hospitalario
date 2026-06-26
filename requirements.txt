@@ -9,3 +9,5 @@ scipy
 statsmodels
 jupyter
 python-dotenv
+fastapi
+uvicorn[standard]

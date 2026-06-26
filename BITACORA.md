@@ -282,6 +282,44 @@ en el `.env` local (gitignored).
 
 ---
 
+### Fase 6 — Backend FastAPI (API de datos sobre PostgreSQL) · ✅ (2026-06-25)
+
+**Objetivo:** exponer los indicadores REM20 y sus vistas como endpoints JSON para alimentar
+el dashboard web automatizado de la Fase 7.
+
+**Flujo (Codex propone, Jack dispone):** Codex generó el primer 80% (estructura `backend/`,
+queries, app FastAPI). Claude revisó contra el esquema real, corrigió el entorno de ejecución
+y verificó endpoint por endpoint.
+
+**Estructura creada (`backend/`):**
+- `database.py` — conexión PostgreSQL con SQLAlchemy: lee `.env` (`quote_plus` en credenciales),
+  `engine` **singleton** con `pool_pre_ping=True`, `get_connection()` como context manager.
+- `queries.py` — 7 funciones que devuelven `list[dict]` JSON-serializables (helper `_json_value`
+  normaliza `Decimal`→float, `NaN`/`NaT`→`None`, enteros/fechas).
+- `main.py` — app FastAPI con CORS para localhost, 7 endpoints GET + raíz, manejo de errores
+  por endpoint (`SQLAlchemyError`/`FileNotFoundError`/genérico → `JSONResponse` 500 con `{"error": …}`,
+  nunca crash).
+- `README.md` — cómo levantar (`uvicorn backend.main:app --reload --port 8000`) y Swagger en `/docs`.
+
+**Endpoints verificados (los 8 responden 200 con JSON real):**
+`/` · `/api/resumen` · `/api/evolucion?periodo=` · `/api/covid` · `/api/ranking?periodo=` ·
+`/api/letalidad-area?periodo=` · `/api/clusters` · `/api/predicciones` + Swagger `/docs`.
+
+**Revisión / correcciones de Claude:**
+- ⚠️ Codex reportó "Python no disponible" (su sandbox no tenía PATH). Falso: el `venv`
+  (Python 3.12.3) funciona; solo **faltaban `fastapi` y `uvicorn`** → instalados con pip en el venv.
+- ✅ Queries validadas contra el esquema real: usan solo columnas existentes de
+  `rem20.indicadores` y las 4 vistas (`v_resumen_anual` no se usa; el resumen nacional se calcula
+  directo de la tabla con `MAX(periodo)`). No hay vista COVID ni de clusters → COVID se filtra de
+  `v_evolucion_mensual` (2018–2022) y `clusters()` devuelve las 4 categorías KMeans como fallback fijo.
+- ✅ `predicciones_2026()` lee `rem20_predicciones_2026.csv` (`;`, `utf-8-sig`), `NaN`→`None`.
+- ✅ Encoding UTF-8 correcto en las respuestas (acentos íntegros: "Saturación crítica");
+  el mojibake visto en consola era artefacto de PowerShell, no de los datos.
+
+**Commit:** `feat: backend FastAPI con API de datos REM20`.
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
@@ -370,5 +408,18 @@ en el `.env` local (gitignored).
 - **Modelo RF comprimido:** `joblib` `compress=3` redujo el `.pkl` de ~955 MB a 209 MB.
 - **Encoding:** todo el pipeline fuerza UTF-8 (CSV, `.sql` con `PGCLIENTENCODING=UTF8`,
   export con `utf-8-sig`); acentos verificados íntegros en BD.
+
+### Arquitectura del backend (Fase 6)
+- **Por qué FastAPI:** framework asíncrono y tipado, genera documentación interactiva (Swagger en
+  `/docs`) sin código extra y serializa JSON nativamente — ideal para una API de solo lectura que
+  alimentará un dashboard web. Se levanta con `uvicorn` (servidor ASGI) en local, sin infraestructura.
+- **Diseño de endpoints:** un GET por indicador analítico, alineado 1:1 con las vistas SQL ya
+  existentes (reutilización de la lógica de agregación que vive en la BD, no en Python). Parámetros
+  opcionales (`periodo`) por query-string para filtrar sin multiplicar rutas.
+- **Capa de datos delgada:** `queries.py` solo ejecuta `SELECT` sobre tablas/vistas y normaliza
+  tipos para JSON; toda la lógica de negocio pesada (limpieza, modelo, clusters) ya quedó
+  materializada en fases previas (BD + CSV). El backend no recalcula, solo expone.
+- **Resiliencia:** cada endpoint captura errores de BD/archivo y responde `500` con cuerpo JSON
+  `{"error": …}` legible, de modo que el dashboard pueda mostrar un mensaje en vez de romperse.
 
 ---
