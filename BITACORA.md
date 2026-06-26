@@ -261,7 +261,7 @@ el dashboard de GitHub aparecía vacío. Se decidió publicarlo como **repo púb
 
 **Auditoría de seguridad pre-push (Claude, orquestador):**
 - ⚠️ Hallazgo: `.env.example` tenía en disco un cambio **sin commitear** con la contraseña real
-  (`DB_PASSWORD=****`). Se revirtió con `git restore .env.example` → quedó el placeholder
+  (`DB_PASSWORD=****`, contraseña real redactada). Se revirtió con `git restore .env.example` → quedó el placeholder
   `tu_password_aqui`. **La contraseña real nunca entró a ningún commit** (verificado con
   `git grep` sobre todo el historial: 0 resultados).
 - ✅ Ningún secreto trackeado: `.env`, `venv/`, `*.pkl` (modelos 209 MB) y `data/raw/*.csv|*.xlsx`
@@ -394,6 +394,41 @@ GTK en Windows.
   estrella COVID) y se confirmó legibilidad, acentos correctos y gráficos embebidos en alta calidad.
 
 **Commit:** `docs: informe final del estudio en PDF`.
+
+---
+
+### Fase 8B — Reutilización, cierre técnico y auditoría de seguridad · ✅ (2026-06-25)
+
+**Objetivo:** dejar el proyecto reutilizable con otra base de datos, con documentación que permita
+reproducirlo end-to-end, y cerrar el control de versiones tras una auditoría de seguridad exhaustiva.
+
+**Parte 1 — Reutilización:**
+- `backend/config.py` (nuevo): centraliza esquema, tabla, vistas, rutas de CSV, `FRONTEND_DIR`,
+  `DEFAULT_PERIODO_RANKING` y `REQUIRED_ENV_VARS`. `queries.py` y `main.py` se refactorizaron para
+  leer de él en vez de literales `rem20.` hardcodeados (verificado: los endpoints devuelven los
+  mismos bytes que antes del refactor).
+- `README.md` raíz (reescrito): propósito, stack, imagen destacada (gráfico COVID), arquitectura,
+  hallazgos con enlace al PDF, reproducción paso a paso (11 pasos verificados), sección "Cómo
+  adaptar a otra base de datos", estructura de carpetas, licencia.
+- `CONFIG.md` (nuevo): guía de parametrización de cada constante de `config.py` + puntos a tocar
+  (DDL, script de carga, queries, dashboard).
+- `LICENSE` (nuevo): MIT; los datos son de fuente pública MINSAL REM20.
+
+**Parte 2 — Auditoría de seguridad (Claude, personal):**
+- ⚠️ **Hallazgo:** la contraseña real del PostgreSQL local quedó escrita en este mismo `BITACORA.md`
+  (nota de la Fase 5 que documentaba el incidente) y se había pusheado al repo público.
+  **Remediación:** se redactó a `****` en el working tree y se **eliminó de todo el historial**
+  (`git filter-branch` sobre BITACORA.md) + **force-push** para limpiar el repo público.
+- ✅ Ningún archivo sensible trackeado (`.env`, `claude_desktop_config.json`, `venv/`, `*.pkl`,
+  datos crudos): todos en `.gitignore`. `.env.example` solo tiene el placeholder. El PDF no expone
+  la contraseña. La credencial no aparecía en ningún otro archivo fuera de BITACORA.
+- 🔑 **Pendiente del usuario (definitivo):** rotar la contraseña del `postgres` local. No la rota
+  Claude porque esa credencial también la usan Power BI, el MCP de Claude Desktop
+  (`claude_desktop_config.json`) y pgAdmin; cambiarla exige actualizar esas integraciones en paralelo.
+
+**Parte 3 — Cierre de control de versiones:** commit `docs: README completo, reutilización y cierre
+del proyecto`, historial saneado, `HEAD` local == `origin/main`.
+Repo: **https://github.com/Mati1993145/Analisis_Hospitalario**
 
 ---
 

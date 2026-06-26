@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Query
@@ -10,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from backend import queries
+from backend import config, queries
 
 
 app = FastAPI(title="API REM20 - Indicadores Hospitalarios", version="1.0.0")
@@ -75,7 +74,7 @@ def api_covid() -> Any:
 
 
 @app.get("/api/ranking")
-def api_ranking(periodo: int = Query(default=2025)) -> Any:
+def api_ranking(periodo: int = Query(default=config.DEFAULT_PERIODO_RANKING)) -> Any:
     return _handle_errors(lambda: queries.ranking_establecimientos(periodo))
 
 
@@ -94,5 +93,4 @@ def api_predicciones() -> Any:
     return _handle_errors(queries.predicciones_2026)
 
 
-FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+app.mount("/", StaticFiles(directory=config.FRONTEND_DIR, html=True), name="frontend")

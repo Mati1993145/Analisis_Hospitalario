@@ -4,16 +4,13 @@ import math
 import numbers
 from datetime import date, datetime
 from decimal import Decimal
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from sqlalchemy import text
 
+from backend import config
 from backend.database import get_connection
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _json_value(value: Any) -> Any:
@@ -52,7 +49,7 @@ def _execute(query: str, params: dict[str, Any] | None = None) -> list[dict[str,
 def resumen_nacional() -> list[dict[str, Any]]:
     """KPIs nacionales calculados desde el ultimo periodo disponible."""
     return _execute(
-        """
+        f"""
         SELECT
             periodo,
             AVG(indice_ocupacional) AS indice_ocupacional_prom,
@@ -60,8 +57,8 @@ def resumen_nacional() -> list[dict[str, Any]]:
             100.0 * SUM(egresos_fallecidos) / NULLIF(SUM(numero_egresos), 0)
                 AS letalidad_nacional,
             AVG(promedio_dias_estada) AS promedio_dias_estada_prom
-        FROM rem20.indicadores
-        WHERE periodo = (SELECT MAX(periodo) FROM rem20.indicadores)
+        FROM {config.TABLA_INDICADORES}
+        WHERE periodo = (SELECT MAX(periodo) FROM {config.TABLA_INDICADORES})
         GROUP BY periodo
         """
     )
@@ -70,7 +67,7 @@ def resumen_nacional() -> list[dict[str, Any]]:
 def evolucion_mensual(periodo: int | None = None) -> list[dict[str, Any]]:
     if periodo is None:
         return _execute(
-            """
+            f"""
             SELECT
                 periodo,
                 mes,
@@ -79,13 +76,13 @@ def evolucion_mensual(periodo: int | None = None) -> list[dict[str, Any]]:
                 letalidad_prom,
                 numero_egresos,
                 egresos_fallecidos
-            FROM rem20.v_evolucion_mensual
+            FROM {config.VISTA_EVOLUCION_MENSUAL}
             ORDER BY periodo, mes
             """
         )
 
     return _execute(
-        """
+        f"""
         SELECT
             periodo,
             mes,
@@ -94,7 +91,7 @@ def evolucion_mensual(periodo: int | None = None) -> list[dict[str, Any]]:
             letalidad_prom,
             numero_egresos,
             egresos_fallecidos
-        FROM rem20.v_evolucion_mensual
+        FROM {config.VISTA_EVOLUCION_MENSUAL}
         WHERE periodo = :periodo
         ORDER BY periodo, mes
         """,
@@ -104,13 +101,13 @@ def evolucion_mensual(periodo: int | None = None) -> list[dict[str, Any]]:
 
 def efecto_covid() -> list[dict[str, Any]]:
     return _execute(
-        """
+        f"""
         SELECT
             periodo,
             mes,
             indice_ocupacional_prom,
             letalidad_prom
-        FROM rem20.v_evolucion_mensual
+        FROM {config.VISTA_EVOLUCION_MENSUAL}
         WHERE periodo BETWEEN 2018 AND 2022
         ORDER BY periodo, mes
         """
@@ -119,7 +116,7 @@ def efecto_covid() -> list[dict[str, Any]]:
 
 def ranking_establecimientos(periodo: int) -> list[dict[str, Any]]:
     return _execute(
-        """
+        f"""
         SELECT
             periodo,
             ranking,
@@ -127,7 +124,7 @@ def ranking_establecimientos(periodo: int) -> list[dict[str, Any]]:
             establecimiento,
             idx_ocup_prom,
             numero_egresos
-        FROM rem20.v_ranking_establecimientos
+        FROM {config.VISTA_RANKING}
         WHERE periodo = :periodo
         ORDER BY ranking
         """,
@@ -138,27 +135,27 @@ def ranking_establecimientos(periodo: int) -> list[dict[str, Any]]:
 def letalidad_por_area(periodo: int | None = None) -> list[dict[str, Any]]:
     if periodo is None:
         return _execute(
-            """
+            f"""
             SELECT
                 area_funcional,
                 periodo,
                 egresos_fallecidos,
                 numero_egresos,
                 letalidad_pct
-            FROM rem20.v_letalidad_por_area
+            FROM {config.VISTA_LETALIDAD_AREA}
             ORDER BY periodo, letalidad_pct DESC
             """
         )
 
     return _execute(
-        """
+        f"""
         SELECT
             area_funcional,
             periodo,
             egresos_fallecidos,
             numero_egresos,
             letalidad_pct
-        FROM rem20.v_letalidad_por_area
+        FROM {config.VISTA_LETALIDAD_AREA}
         WHERE periodo = :periodo
         ORDER BY periodo, letalidad_pct DESC
         """,
@@ -167,7 +164,7 @@ def letalidad_por_area(periodo: int | None = None) -> list[dict[str, Any]]:
 
 
 def clusters() -> list[dict[str, Any]]:
-    csv_path = PROJECT_ROOT / "data" / "processed" / "clusters.csv"
+    csv_path = config.CLUSTERS_CSV
 
     if csv_path.exists():
         df = pd.read_csv(csv_path, sep=";", encoding="utf-8-sig")
@@ -199,7 +196,7 @@ def clusters() -> list[dict[str, Any]]:
 
 
 def predicciones_2026() -> list[dict[str, Any]]:
-    csv_path = PROJECT_ROOT / "data" / "processed" / "rem20_predicciones_2026.csv"
+    csv_path = config.PREDICCIONES_CSV
 
     if not csv_path.exists():
         raise FileNotFoundError(f"No existe el archivo de predicciones: {csv_path}")
