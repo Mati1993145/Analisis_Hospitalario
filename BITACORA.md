@@ -320,6 +320,45 @@ y verificó endpoint por endpoint.
 
 ---
 
+### Fase 7 — Dashboard web dark mode con auto-refresh · ✅ (2026-06-25)
+
+**Objetivo:** dashboard HTML/JS servido por el propio backend que consume los endpoints de la
+Fase 6, con estética dark mode profesional, 4 pestañas y auto-refresh cada 5 minutos. El usuario
+no dibuja nada: Plotly.js renderiza a partir del JSON de la API.
+
+**Flujo (Codex propone, Jack dispone):** Codex generó `frontend/` y ajustó `main.py` para servir
+estáticos. Claude revisó el cableado HTML↔JS↔API, validó campos reales y ejecutó la verificación.
+
+**Estructura creada (`frontend/`):**
+- `index.html` — banda superior sticky (título + sello "Última actualización") + 4 pestañas
+  (Resumen Nacional, Efecto COVID, Establecimientos, Predicciones 2026); Plotly por CDN
+  (`plotly-2.35.2`).
+- `styles.css` — dark mode completo con la paleta exacta en variables `:root`; tabs, tarjetas KPI,
+  tabla con barras de datos en celda, tarjetas de cluster con borde por color, responsive.
+- `dashboard.js` — `fetchData()` tolerante a fallos (banner de error, no rompe el resto),
+  `darkLayout` reutilizable de Plotly, un render por gráfico, pestañas por mostrar/ocultar,
+  selectores de periodo (ranking) y serie (predicciones), y **auto-refresh** con un único timer
+  (`clearInterval` previo a cada `setInterval`, 300.000 ms).
+- `README.md` — se sirve desde el backend → `uvicorn` + abrir `http://localhost:8000`.
+
+**Integración con el backend (`main.py` modificado):**
+- El JSON de bienvenida se movió de `GET /` a `GET /api` para liberar la raíz.
+- `app.mount("/", StaticFiles(directory=frontend, html=True))` montado **al final**, tras todas las
+  rutas `/api/*`, para que el catch-all estático no las tape.
+
+**Verificación de Claude (servidor levantado):**
+- ✅ `GET /` sirve `index.html` (`text/html`), no el JSON; `styles.css` y `dashboard.js` cargan.
+- ✅ El mount no rompió la API: `/api`, `/api/resumen`, `/api/predicciones`, `/docs` y
+  `/openapi.json` siguen respondiendo 200.
+- ✅ Cableado HTML↔JS verificado: IDs/clases (`tab-section`, `tab-button[data-tab]`, KPIs,
+  selects, `error-banner`) coinciden; los render enlazan los **campos reales** de cada endpoint
+  (p.ej. `idx_ocup_prom`, `letalidad_pct`, `INDICE_OCUPACIONAL_PREDICHO`, `VALOR_REAL`).
+- ✅ Auto-refresh sin acumulación de timers; sello de última actualización con hora local.
+
+**Commit:** `feat: dashboard web dark mode con auto-refresh`.
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
@@ -421,5 +460,22 @@ y verificó endpoint por endpoint.
   materializada en fases previas (BD + CSV). El backend no recalcula, solo expone.
 - **Resiliencia:** cada endpoint captura errores de BD/archivo y responde `500` con cuerpo JSON
   `{"error": …}` legible, de modo que el dashboard pueda mostrar un mensaje en vez de romperse.
+
+### Arquitectura del frontend (Fase 7)
+- **Sin build, sin framework:** HTML/CSS/JS vanilla + Plotly.js por CDN. Cero dependencias que
+  instalar ni paso de compilación → el dashboard es un artefacto estático que cualquiera abre con
+  solo levantar el backend. Decisión alineada a un proyecto de portafolio reproducible.
+- **Mismo origen (el backend sirve el frontend):** `StaticFiles` montado en `/` elimina problemas
+  de CORS y de configurar dos servidores; los `fetch` usan rutas relativas `/api/*`. El mount va
+  al final para no ensombrecer las rutas de la API ni `/docs`.
+- **Render dirigido por datos:** un `darkLayout` base de Plotly se reutiliza en todos los gráficos
+  (consistencia visual); cada función de render solo mapea el JSON del endpoint a trazas. `Plotly.react`
+  (en vez de `newPlot`) permite que el auto-refresh redibuje sin recrear el nodo.
+- **Auto-refresh seguro:** un único timer global con `clearInterval` previo evita la fuga clásica de
+  acumular `setInterval`; el ciclo de 5 min recarga todos los endpoints y refresca el sello horario.
+- **Tolerancia a fallos:** si un endpoint cae, `fetchData` retorna `null`, muestra un banner y el
+  resto del dashboard sigue funcionando — no hay pantalla en blanco.
+- **Honestidad analítica:** la pestaña de predicciones expone las métricas reales del modelo
+  (R²=0,636, MAE=8,13) junto al gráfico real-vs-predicho, sin maquillar el desempeño.
 
 ---

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Indicadores Hospitalarios · Chile 2014-2026</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-main">
+        <h1>Indicadores Hospitalarios · Chile 2014-2026</h1>
+        <span id="last-update" class="update-badge">Última actualización: --:--</span>
+      </div>
+      <nav class="tabs" aria-label="Navegación principal">
+        <button class="tab-button active" data-tab="resumen" type="button">Resumen Nacional</button>
+        <button class="tab-button" data-tab="covid" type="button">Efecto COVID</button>
+        <button class="tab-button" data-tab="establecimientos" type="button">Establecimientos</button>
+        <button class="tab-button" data-tab="predicciones" type="button">Predicciones 2026</button>
+      </nav>
+    </header>
+
+    <main class="dashboard-shell">
+      <div id="error-banner" class="error-banner hidden" role="alert"></div>
+
+      <section id="tab-resumen" class="tab-section">
+        <div class="kpi-grid">
+          <article class="kpi-card accent-cyan">
+            <span class="kpi-label">Índice ocupacional promedio</span>
+            <strong id="kpi-ocupacion" class="kpi-value">--</strong>
+          </article>
+          <article class="kpi-card accent-green">
+            <span class="kpi-label">Total egresos</span>
+            <strong id="kpi-egresos" class="kpi-value">--</strong>
+          </article>
+          <article class="kpi-card accent-red">
+            <span class="kpi-label">Letalidad nacional</span>
+            <strong id="kpi-letalidad" class="kpi-value">--</strong>
+          </article>
+          <article class="kpi-card accent-amber">
+            <span class="kpi-label">Promedio días estada</span>
+            <strong id="kpi-estada" class="kpi-value">--</strong>
+          </article>
+        </div>
+        <div class="chart-card">
+          <h2>Evolución mensual de ocupación</h2>
+          <div id="chart-evolucion" class="chart-large"></div>
+        </div>
+      </section>
+
+      <section id="tab-covid" class="tab-section hidden">
+        <div class="chart-card">
+          <h2>Efecto COVID: ocupación y letalidad</h2>
+          <div id="chart-covid" class="chart-large"></div>
+        </div>
+        <div class="support-row">
+          <article class="kpi-card accent-cyan">
+            <span class="kpi-label">Menor ocupación observada</span>
+            <strong id="kpi-caida-ocupacion" class="kpi-value">--</strong>
+          </article>
+          <article class="kpi-card accent-red">
+            <span class="kpi-label">Peak de letalidad</span>
+            <strong id="kpi-peak-letalidad" class="kpi-value">--</strong>
+          </article>
+          <p class="insight-note">Menos pacientes, pero más graves: la ocupación cayó mientras la letalidad subió.</p>
+        </div>
+      </section>
+
+      <section id="tab-establecimientos" class="tab-section hidden">
+        <div class="section-toolbar">
+          <h2>Establecimientos y áreas funcionales</h2>
+          <label for="select-periodo-ranking">Periodo</label>
+          <select id="select-periodo-ranking">
+            <option value="2018">2018</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025" selected>2025</option>
+          </select>
+        </div>
+        <div id="tabla-ranking" class="table-card"></div>
+        <div id="clusters-container" class="cluster-grid"></div>
+        <div class="chart-card">
+          <h2>Letalidad por área funcional</h2>
+          <div id="chart-letalidad-area" class="chart-medium"></div>
+        </div>
+      </section>
+
+      <section id="tab-predicciones" class="tab-section hidden">
+        <div class="section-toolbar">
+          <h2>Predicciones de índice ocupacional 2026</h2>
+          <label for="select-serie">Serie</label>
+          <select id="select-serie"></select>
+        </div>
+        <div class="chart-card">
+          <div id="chart-predicciones" class="chart-large"></div>
+        </div>
+        <div class="support-row metrics-row">
+          <article class="kpi-card accent-violet">
+            <span class="kpi-label">Desempeño del modelo</span>
+            <strong class="kpi-value">R² = 0,636</strong>
+          </article>
+          <article class="kpi-card accent-violet">
+            <span class="kpi-label">Error absoluto medio</span>
+            <strong class="kpi-value">MAE = 8,13</strong>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

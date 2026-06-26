@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend import queries
@@ -41,8 +43,8 @@ def _handle_errors(action: Callable[[], Any]) -> Any:
         return JSONResponse(status_code=500, content={"error": f"Error interno: {exc}"})
 
 
-@app.get("/")
-def root() -> dict[str, Any]:
+@app.get("/api")
+def api_root() -> dict[str, Any]:
     return {
         "mensaje": "Bienvenido a la API REM20 - Indicadores Hospitalarios",
         "endpoints": [
@@ -90,3 +92,7 @@ def api_clusters() -> Any:
 @app.get("/api/predicciones")
 def api_predicciones() -> Any:
     return _handle_errors(queries.predicciones_2026)
+
+
+FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
