@@ -254,6 +254,34 @@ aclaración MCP≠Power BI al inicio; nombres de columnas dentro del esquema rea
 
 ---
 
+### Fase 5 — Publicación en GitHub (repo público de portafolio) · ✅ (2026-06-25)
+
+**Contexto:** el repositorio existía solo en local (rama `main`, sin remoto configurado), por eso
+el dashboard de GitHub aparecía vacío. Se decidió publicarlo como **repo público de portafolio**.
+
+**Auditoría de seguridad pre-push (Claude, orquestador):**
+- ⚠️ Hallazgo: `.env.example` tenía en disco un cambio **sin commitear** con la contraseña real
+  (`DB_PASSWORD=****`). Se revirtió con `git restore .env.example` → quedó el placeholder
+  `tu_password_aqui`. **La contraseña real nunca entró a ningún commit** (verificado con
+  `git grep` sobre todo el historial: 0 resultados).
+- ✅ Ningún secreto trackeado: `.env`, `venv/`, `*.pkl` (modelos 209 MB) y `data/raw/*.csv|*.xlsx`
+  excluidos por `.gitignore`; `claude_desktop_config.json` nunca versionado.
+- ✅ Payload final: **40 archivos / ~1,3 MB** (código, SQL, notebooks, gráficos PNG, CSV de
+  predicciones, BITACORA y READMEs).
+
+**Push (ejecutado por Codex por falta de tokens):** `git remote add origin` +
+`git push -u origin main` con auth vía Git Credential Manager de Windows.
+
+**Verificación post-push (Claude):** `git rev-parse HEAD` == `git rev-parse origin/main`
+(`8895475`); `git ls-files` = 40 archivos sin `.env`/`.pkl`; `.env.example` publicado contiene
+solo el placeholder. Repo: **https://github.com/Mati1993145/Analisis_Hospitalario**
+
+**Nota de higiene (opcional, no bloqueante):** la contraseña estuvo momentáneamente en disco pero
+nunca se subió; al ser PostgreSQL local el riesgo es mínimo. Recomendable rotarla y reflejarla solo
+en el `.env` local (gitignored).
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
