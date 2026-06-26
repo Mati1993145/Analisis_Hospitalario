@@ -359,6 +359,44 @@ estáticos. Claude revisó el cableado HTML↔JS↔API, validó campos reales y 
 
 ---
 
+### Fase 8A — Informe final del estudio en PDF · ✅ (2026-06-25)
+
+**Objetivo:** generar un informe profesional en PDF (enfoque ejecutivo-técnico, español) que
+documente todo el estudio, con gráficos nuevos a 300 DPI. Fuente de contenido: la sección
+"HALLAZGOS PARA INFORME FINAL" acumulada en las 7 fases previas.
+
+**Flujo (Codex propone, Jack dispone):** Codex escribió los dos scripts; Claude validó cada cifra
+contra la bitácora, eligió el stack, instaló dependencias y ejecutó/verificó la salida.
+
+**Stack elegido (Claude):** `matplotlib` (gráficos 300 DPI, fondo claro para impresión) +
+`reportlab` (armado del PDF con Platypus). Se descartó `weasyprint` por su dependencia frágil de
+GTK en Windows.
+
+**Entregables creados:**
+- `python/scripts/04_genera_graficos_informe.py` — 7 PNG a 300 DPI en
+  `data/processed/graficos_informe/`: evolución ocupación, doble efecto COVID (estrella, doble eje),
+  estacionalidad (peak agosto), heatmap letalidad área×año, clusters PCA, predicciones 2026 vs real,
+  feature importance (lag_1 dominante). Lee de PostgreSQL, del CSV de predicciones y del `.pkl` del RF.
+- `python/scripts/05_genera_informe_pdf.py` — informe A4 de **10 páginas** con portada, resumen
+  ejecutivo, índice y 8 secciones; registra DejaVu Sans para acentos/símbolos; footer con
+  "Fuente: MINSAL REM20 · Elaboración propia" y número de página; tabla de clusters.
+- `data/processed/Informe_REM20_Chile_2014-2026.pdf` (**2,3 MB, 10 páginas**).
+
+**Revisión / correcciones de Claude:**
+- ⚠️ El prompt original decía "313 establecimientos"; la cifra real de la bitácora es **208**. Se
+  usó 208 (no se inventó). Todas las demás cifras se verificaron contra HALLAZGOS (R²=0,636,
+  MAE=8,13, COVID 45,61 / 4,67%, clusters 120/82/4/2, conflictos Teno/Laja).
+- ✅ Honestidad metodológica preservada: la Sección 5 presenta el R²=0,636 con su lectura honesta
+  (brecha MAE↔RMSE, errores en casos extremos) y argumenta por qué un R² real vale más que uno inflado.
+- ✅ Codex repitió el falso "Python no disponible" (sandbox sin PATH); el venv funciona — Claude
+  instaló `reportlab` y ejecutó ambos scripts.
+- ✅ Verificación visual: se renderizaron páginas del PDF (portada, Análisis Exploratorio, gráfico
+  estrella COVID) y se confirmó legibilidad, acentos correctos y gráficos embebidos en alta calidad.
+
+**Commit:** `docs: informe final del estudio en PDF`.
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
