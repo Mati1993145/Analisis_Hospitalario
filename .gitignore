@@ -5,4 +5,6 @@ __pycache__/
 *.pkl
 data/raw/*.csv
 data/raw/*.xlsx
+data/raw/egresos_deis/
+data/processed/egresos_salud_mental_deis.csv
 .jupyter/

@@ -497,6 +497,46 @@ Commit `docs: reencuadre del sub-estudio a hospitalizaciones por salud mental y 
 
 ---
 
+### Fase 10 — Capa 2: ¿causó el COVID el aumento de las PATOLOGÍAS psiquiátricas? · ✅ (2026-06-27)
+
+Segunda capa del sub-estudio. Matías distinguió que su pregunta no era solo por las
+hospitalizaciones (camas), sino por el **incremento de patologías psiquiátricas** (la
+enfermedad). REM20 no lo puede medir (no trae diagnóstico), así que se incorporó una **fuente
+externa con diagnóstico CIE-10**.
+
+- **Fuente rescatada (Jack):** DEIS/MINSAL, egresos hospitalarios datos abiertos. El sitio
+  bloquea bots (403); se ubicó la tabla real vía el endpoint Ninja Tables de WordPress y se
+  bajaron por `curl` los ZIP por año (`repositoriodeis.minsal.cl/DatosAbiertos/EGRESOS/EGRESOS_AAAA.zip`,
+  2001–2025). Estructura estable: `;`, Latin-1, ~1,6 M egresos/año, columna **DIAG1** (CIE-10).
+- **ETL** (`python/scripts/07_ingesta_egresos_deis.py`): streaming desde el zip, filtra
+  `DIAG1` que empieza con `F` (capítulo V, F00–F99), consolida ~776.000 egresos de salud mental
+  y la serie anual con grupo de control. Borra el CSV grande (~300 MB/año) para no acumular ~7 GB.
+- **Análisis** (`python/notebooks/04_covid_patologias_anual.ipynb`): mismo método que la Capa 1
+  (ITS + contrafactual + control/DiD) a resolución **anual**, más desglose por grupo dx.
+
+**Hallazgo (distinto y más fuerte que la Capa 1):** a diferencia de las camas, la patología
+psiquiátrica hospitalizada estuvo **plana 2001–2019** (pendiente pre-COVID +22,8/año, p=0,77, no
+significativa) y se **quiebra al alza tras 2020** (test F de quiebre = 211,7; p<0,001; cambio de
+pendiente +4.009/año). 2020 cae primero (−3.177), luego dispara: post-2022 queda **+37,5% sobre
+lo esperado** (+11.119 egresos/año); en tasa, +41,4%. Es **específico de salud mental**:
+diff-in-diff **+41,1 pp** vs. el resto del sistema (−3,6%). Serie: 32.695 (2019) → 45.372 (2025),
++38,8%. **Motores:** afectivos F30–F39 (depresión/bipolar) +54,8% (mayor alza absoluta), ansiedad
+F40–F48 +52,3%, personalidad +78,0%, infanto-juvenil F90–F99 +76,5%, desarrollo F80–F89 +105,4%;
+**bajan** sustancias F10–F19 (−10,2%) y discapacidad intelectual F70–F79 (−24,3%).
+
+**Síntesis de las dos capas (veredicto honesto):** la **necesidad de camas** psiquiátricas no la
+creó el COVID (tendencia previa, Capa 1); pero la **patología por diagnóstico**, plana dos
+décadas, **se quiebra al alza coincidiendo con la pandemia** (Capa 2) — la señal más sólida de un
+cambio asociado al COVID. Se mantiene la honestidad del dato: es **asociación**, no causalidad
+probada, y mide hospitalización-por-diagnóstico, no incidencia poblacional.
+
+- **Entregable:** `data/processed/Sub-estudio_Patologia_Psiquiatrica_COVID.pdf` (6 págs, reportlab,
+  5 figuras), narrativa **certificada cifra por cifra** (22 cifras OK, 0 afirmaciones causales
+  indebidas). Generador: `python/scripts/08_genera_capa2_pdf.py`.
+- **Seguridad:** los ZIP del DEIS (~280 MB) y el CSV intermedio (30 MB) quedan **gitignored**;
+  solo se versiona la serie anual (1,9 KB), los gráficos, el notebook, los scripts y el PDF.
+
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.
