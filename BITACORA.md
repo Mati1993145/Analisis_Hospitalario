@@ -472,6 +472,31 @@ Análisis de quiebre de tendencia sobre el segmento de salud mental de `rem20.in
 
 ---
 
+### Fase 9C — Reencuadre a "hospitalizaciones por salud mental" + plan de capa de patologías · ✅ (2026-06-26)
+
+Aclaración del usuario: la pregunta es si el COVID causó el aumento de **hospitalizaciones por
+salud mental** (no "egresos hospitalarios" genéricos) y, en una segunda capa, el **incremento de
+patologías psiquiátricas**. Decisión: **ambas, en capas**.
+
+**Capa 1 (REM20, hecha):** el segmento ya era psiquiátrico; en REM20 la hospitalización por salud
+mental se mide por los **egresos** (cada egreso = una hospitalización completada). Se reenfocó el
+entregable PDF: título "Sub-estudio: COVID y hospitalizaciones por salud mental", pregunta de
+investigación literal, y precisión de alcance (mide hospitalización/uso de camas, **no**
+incidencia de patología). Cifras y veredicto **sin cambios** (el COVID no fue la causa; la
+tendencia ya venía desde 2014). Regenerado `data/processed/Sub-estudio_Salud_Mental_COVID.pdf`.
+
+**Capa 2 (pendiente, requiere fuente externa):** medir si aumentó la **incidencia de patologías
+psiquiátricas** exige datos con diagnóstico clínico que REM20 NO tiene. Fuente objetivo:
+**DEIS / MINSAL — egresos hospitalarios por diagnóstico CIE-10, capítulo V (F00–F99, trastornos
+mentales y del comportamiento)**; alternativas: actividad ambulatoria de salud mental (REM serie
+A), licencias médicas por salud mental (SUSESO). Método replicable: mismo quiebre de tendencia
+(ITS + contrafactual + control) aplicado a la serie de diagnósticos. Bloqueante: conseguir el
+dataset. Queda a la espera de la fuente.
+
+Commit `docs: reencuadre del sub-estudio a hospitalizaciones por salud mental y plan de capa de patologías`.
+
+---
+
 ## HALLAZGOS PARA INFORME FINAL
 
 > Registro acumulativo, fase a fase, de todo lo publicable para el reporte profesional.

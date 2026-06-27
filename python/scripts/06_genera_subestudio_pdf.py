@@ -106,11 +106,18 @@ def footer(canvas, doc) -> None:
 def content_blocks() -> list:
     return [
         ("h1", "1. Pregunta de investigación"),
-        ("p", "Este sub-estudio evalúa si el aumento observado en los egresos de hospitalización "
-              "psiquiátrica clínica puede atribuirse al COVID, o si corresponde a una trayectoria "
-              "previa del sistema que ya venía en desarrollo antes de la pandemia. La pregunta no es "
-              "si la pandemia afectó la operación hospitalaria —sí lo hizo—, sino si explica "
-              "causalmente el alza posterior de hospitalizaciones psiquiátricas."),
+        ("p", "Este sub-estudio responde una pregunta concreta: <b>¿fue el COVID el responsable del "
+              "aumento de las hospitalizaciones por salud mental?</b> La pregunta no es si la "
+              "pandemia afectó la operación hospitalaria —sí lo hizo—, sino si explica causalmente el "
+              "alza posterior de las hospitalizaciones psiquiátricas, o si éstas ya seguían una "
+              "trayectoria previa al COVID."),
+        ("p", "En REM20 la hospitalización por salud mental se cuantifica a través de los <b>egresos</b> "
+              "(altas) de las unidades psiquiátricas: cada egreso corresponde a una hospitalización "
+              "completada, de modo que el número de egresos es el indicador de volumen de "
+              "hospitalización. Una precisión de alcance: este análisis mide <b>hospitalizaciones</b> "
+              "(uso de camas psiquiátricas), no la <b>incidencia de patologías</b> psiquiátricas en la "
+              "población —si hay más enfermedad mental—, que exige fuentes con diagnóstico clínico "
+              "ajenas a REM20 y se aborda como una capa de análisis separada."),
         ("p", "La fuente utilizada corresponde a <b>rem20.indicadores</b> del MINSAL REM20, con serie "
               "mensual entre 2014-01 y 2026-05, con 149 meses observados y 0 huecos. En el segmento "
               "psiquiátrico clínico, los egresos presentan una media cercana a 1.143 por mes, con "
@@ -193,7 +200,12 @@ def content_blocks() -> list:
         ("h1", "5. Salvedad metodológica"),
         ("p", "REM20 mide volumen y flujo de actividad hospitalaria, no diagnóstico clínico individual "
               "por patología. Por tanto, este análisis no permite afirmar qué cuadros clínicos "
-              "específicos explican los egresos ni establecer causalidad clínica a nivel de paciente."),
+              "específicos explican las hospitalizaciones ni establecer causalidad clínica a nivel de "
+              "paciente. En consecuencia, el estudio responde la pregunta de <b>hospitalizaciones</b> "
+              "por salud mental, pero no la de <b>incremento de patologías</b> psiquiátricas "
+              "(incidencia de enfermedad), que constituye una segunda capa de análisis a partir de "
+              "fuentes con diagnóstico —por ejemplo, egresos por CIE-10 (capítulo V, F00–F99) del DEIS "
+              "o la actividad ambulatoria de salud mental—."),
         ("p", "El análisis es agregado, con punto de interrupción fijo en marzo de 2020. El "
               "contrafactual utilizado es lineal y proyecta la tendencia pre-COVID bajo ese supuesto. "
               "Además, 2026 corresponde a un año parcial, por lo que debe interpretarse con cautela al "
@@ -239,9 +251,10 @@ def main() -> None:
     story: list = []
     # Portada
     story.append(Spacer(1, 5 * cm))
-    story.append(Paragraph("Sub-estudio: COVID y hospitalización psiquiátrica", styles["cover_title"]))
-    story.append(Paragraph("¿Causó la pandemia el aumento? Análisis de quiebre de tendencia "
-                           "(2014–2026)", styles["cover_subtitle"]))
+    story.append(Paragraph("Sub-estudio: COVID y hospitalizaciones por salud mental", styles["cover_title"]))
+    story.append(Paragraph("¿Fue el COVID el responsable del aumento de las hospitalizaciones por "
+                           "salud mental? Análisis de quiebre de tendencia (2014–2026)",
+                           styles["cover_subtitle"]))
     story.append(Spacer(1, 1 * cm))
     story.append(Paragraph("Análisis de Indicadores Hospitalarios · MINSAL REM20<br/>"
                            "Matías Durán · Data &amp; Business Analyst", styles["cover_meta"]))
